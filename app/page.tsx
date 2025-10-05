@@ -343,7 +343,7 @@ export default function Home() {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors group"
-                title="You can also use our platform on this phone number on WhatsApp. Message this number on WhatsApp to use our platform there as well."
+                title="You can also use our platform on this phone number on WhatsApp."
                 style={{ transitionDelay: '0ms' }}
               >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
