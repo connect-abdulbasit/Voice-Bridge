@@ -14,7 +14,20 @@ interface WebhookBody {
 
 // GET method for Meta webhook verification
 export async function GET(request: NextRequest) {
-  return NextResponse.json({ message: 'success' });
+  const searchParams = request.nextUrl.searchParams;
+  const mode = searchParams.get('hub.mode');
+  const challenge = searchParams.get('hub.challenge');
+  const verifyToken = searchParams.get('hub.verify_token');
+
+  // Verify the webhook
+  if (mode === 'subscribe' && verifyToken) {
+    console.log('Webhook verified');
+    // Return the challenge value as plain text
+    return new NextResponse(challenge);
+  } else {
+    console.log('Webhook verification failed');
+    return new NextResponse('Forbidden', { status: 403 });
+  }
 }
 
 // POST method for receiving Meta webhook events
