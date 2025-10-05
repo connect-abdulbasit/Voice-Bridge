@@ -50,6 +50,7 @@ interface Message {
   isUser: boolean;
   timestamp: Date;
   audioUrl?: string;
+  audioLoaded?: boolean;
 }
 
 interface StoredMessage {
@@ -58,6 +59,7 @@ interface StoredMessage {
   isUser: boolean;
   timestamp: string; // ISO string for storage
   audioUrl?: string;
+  audioLoaded?: boolean;
 }
 
 export default function Home() {
@@ -123,6 +125,15 @@ export default function Home() {
     } finally {
       setIsClearing(false);
     }
+  };
+
+  // Handle audio loading state
+  const handleAudioLoad = (messageId: string) => {
+    setMessages(prev => prev.map(msg => 
+      msg.id === messageId 
+        ? { ...msg, audioLoaded: true }
+        : msg
+    ));
   };
 
   // Load messages on component mount
@@ -210,6 +221,7 @@ export default function Home() {
           isUser: false,
           timestamp: new Date(),
           audioUrl: data.audioUrl,
+          audioLoaded: false,
         };
         setMessages(prev => [...prev, aiMessage]);
       } else {
@@ -363,9 +375,9 @@ export default function Home() {
                   <div className="text-sm text-gray-600">Tell me about Pakistan</div>
                 </button>
               </div>
+              </div>
             </div>
-          </div>
-        ) : (
+          ) : (
           /* Messages */
           <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
             {messages.map((message) => (
@@ -383,9 +395,33 @@ export default function Home() {
                   {/* AI response - audio first, then text */}
                   {!message.isUser && message.audioUrl && (
                     <div className="mb-3">
-                      <audio controls className="w-full h-8">
+                      {!message.audioLoaded ? (
+                        <div className="flex items-center justify-center w-full h-8 bg-gray-100 rounded-lg">
+                          <div className="flex items-center space-x-2">
+                            <div className="flex space-x-1">
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.1s]"></div>
+                              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                            </div>
+                            <span className="text-xs text-gray-500">Loading audio...</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <audio 
+                          controls 
+                          className="w-full h-8"
+                        >
+                          <source src={message.audioUrl} type="audio/mpeg" />
+                          Your browser does not support the audio element.
+                        </audio>
+                      )}
+                      {/* Hidden audio element to detect when it's loaded */}
+                      <audio 
+                        style={{ display: 'none' }}
+                        onLoadedData={() => handleAudioLoad(message.id)}
+                        onCanPlay={() => handleAudioLoad(message.id)}
+                      >
                         <source src={message.audioUrl} type="audio/mpeg" />
-                        Your browser does not support the audio element.
                       </audio>
                     </div>
                   )}
@@ -488,7 +524,7 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
               </svg>
             </button>
-          </div>
+        </div>
         </div>
       </div>
     </div>
