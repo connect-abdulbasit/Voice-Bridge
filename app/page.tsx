@@ -291,9 +291,16 @@ export default function Home() {
       {/* Header */}
       <header className="relative z-10 bg-white border-b border-gray-200/30 px-6 py-4">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-900">Voice Bridge</h1>
-            <p className="text-sm text-gray-600">AI-powered conversations in Urdu</p>
+          <div className="flex items-center space-x-4">
+            <img 
+              src="/Logo.png" 
+              alt="Voice Bridge Logo" 
+              className="w-10 h-10 object-contain"
+            />
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">Voice Bridge</h1>
+              <p className="text-sm text-gray-600">AI-powered conversations in Urdu</p>
+            </div>
           </div>
           <div className="flex items-center space-x-4">
             {messages.length > 0 && (
@@ -334,10 +341,12 @@ export default function Home() {
           /* Empty State */
           <div className="max-w-4xl mx-auto px-6 py-12">
             <div className="text-center">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                </svg>
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg border-4 border-gray-100">
+                <img 
+                  src="/Logo.png" 
+                  alt="Voice Bridge Logo" 
+                  className="w-12 h-12 object-contain"
+                />
               </div>
               <h2 className="text-2xl font-semibold text-gray-900 mb-3">Welcome to Voice Bridge</h2>
               <p className="text-gray-600 mb-8 max-w-md mx-auto">
