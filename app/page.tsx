@@ -52,17 +52,93 @@ interface Message {
   audioUrl?: string;
 }
 
+interface StoredMessage {
+  id: string;
+  text: string;
+  isUser: boolean;
+  timestamp: string; // ISO string for storage
+  audioUrl?: string;
+}
+
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  // Local storage key
+  const STORAGE_KEY = 'voice-bridge-chat-history';
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
+
+  // Convert Message to StoredMessage
+  const messageToStored = (message: Message): StoredMessage => ({
+    ...message,
+    timestamp: message.timestamp.toISOString(),
+  });
+
+  // Convert StoredMessage to Message
+  const storedToMessage = (stored: StoredMessage): Message => ({
+    ...stored,
+    timestamp: new Date(stored.timestamp),
+  });
+
+  // Save messages to local storage (keep last 4 conversations)
+  const saveToLocalStorage = (messages: Message[]) => {
+    try {
+      const storedMessages = messages.map(messageToStored);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(storedMessages));
+    } catch (error) {
+      console.error('Failed to save to local storage:', error);
+    }
+  };
+
+  // Load messages from local storage
+  const loadFromLocalStorage = (): Message[] => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        const storedMessages: StoredMessage[] = JSON.parse(stored);
+        return storedMessages.map(storedToMessage);
+      }
+    } catch (error) {
+      console.error('Failed to load from local storage:', error);
+    }
+    return [];
+  };
+
+  // Clear chat history
+  const clearChat = async () => {
+    setIsClearing(true);
+    try {
+      // Add a small delay for better UX
+      await new Promise(resolve => setTimeout(resolve, 300));
+      setMessages([]);
+      localStorage.removeItem(STORAGE_KEY);
+    } finally {
+      setIsClearing(false);
+    }
+  };
+
+  // Load messages on component mount
+  useEffect(() => {
+    const savedMessages = loadFromLocalStorage();
+    if (savedMessages.length > 0) {
+      setMessages(savedMessages);
+    }
+  }, []);
+
+  // Save messages whenever they change
+  useEffect(() => {
+    if (messages.length > 0) {
+      saveToLocalStorage(messages);
+    }
+  }, [messages]);
 
   useEffect(() => {
     scrollToBottom();
@@ -80,6 +156,8 @@ export default function Home() {
         const transcript = event.results[0][0].transcript;
         setInputText(transcript);
         setIsListening(false);
+        // Auto-send the transcribed message
+        sendMessage(transcript);
       };
 
       recognitionRef.current.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -205,9 +283,35 @@ export default function Home() {
             <h1 className="text-xl font-semibold text-gray-900">Voice Bridge</h1>
             <p className="text-sm text-gray-600">AI-powered conversations in Urdu</p>
           </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-sm text-gray-600">Online</span>
+          <div className="flex items-center space-x-4">
+            {messages.length > 0 && (
+              <button
+                onClick={clearChat}
+                disabled={isClearing}
+                className="flex items-center space-x-2 px-3 py-2 text-sm text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                title="Clear chat history"
+              >
+                {isClearing ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>Clearing...</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                    <span>Clear Chat</span>
+                  </>
+                )}
+              </button>
+            )}
+            <div className="flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="text-sm text-gray-600">Online</span>
+            </div>
           </div>
         </div>
       </header>
@@ -308,6 +412,21 @@ export default function Home() {
                       <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0.2s]"></div>
                     </div>
                     <span className="text-sm">AI is thinking...</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isListening && (
+              <div className="flex justify-end">
+                <div className="bg-gradient-to-br from-green-500 to-green-600 text-white px-6 py-4 rounded-2xl ml-12">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex space-x-1">
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.1s]"></div>
+                      <div className="w-2 h-2 bg-white rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                    </div>
+                    <span className="text-sm">Listening... Speak now</span>
                   </div>
                 </div>
               </div>
