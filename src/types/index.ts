@@ -42,6 +42,7 @@ export interface TTSResponse {
   audioUrl?: string;
   success: boolean;
   error?: string;
+  format?: string;
 }
 
 export interface GeminiResponse {
