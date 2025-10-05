@@ -1,228 +1,180 @@
-# Voice Bridge - Next.js WhatsApp AI Assistant
+# Voice Bridge - WhatsApp Voice Processing System
 
-A Next.js backend project that integrates WhatsApp Business API with Google Gemini AI and Uplift TTS for creating an intelligent voice-enabled chatbot.
+A Next.js application that provides a webhook proxy system for processing WhatsApp messages through a voice-to-text and text-to-speech pipeline.
 
-## Features
+## 🚀 Features
 
-- **WhatsApp Integration**: Send and receive messages via WhatsApp Business API
-- **AI Responses**: Powered by Google Gemini API with Urdu/English support
-- **High-Quality Urdu TTS**: Natural Pakistani text-to-speech using Uplift Orator API
-- **Database**: Supabase PostgreSQL with Drizzle ORM
-- **Conversation History**: Persistent chat history and user sessions
+- **Webhook Proxy System**: Process messages from external systems
+- **Voice-to-Text**: Convert voice messages to text using UpliftAI STT
+- **LLM Integration**: Process text with OpenAI GPT-4o-mini
+- **Text-to-Speech**: Convert responses back to voice using UpliftAI TTS
+- **WhatsApp Integration**: Basic WhatsApp bot setup (simplified for now)
 
-## Tech Stack
+## 📁 Project Structure
 
-- **Framework**: Next.js 15 with App Router
-- **Database**: Supabase (PostgreSQL) with Drizzle ORM
-- **AI**: Google Gemini API
-- **TTS**: Uplift API for Urdu text-to-speech
-- **Messaging**: WhatsApp Business API
-- **Language**: TypeScript
-
-## Setup Instructions
-
-### 1. Environment Variables
-
-Copy the environment template and fill in your API keys:
-
-```bash
-cp env.template .env.local
+```
+/app
+  /api
+    /bot              # WhatsApp bot status and initialization
+    /webhook          # Meta webhook verification
+    /webhook-proxy    # Main voice processing pipeline
+  /page.tsx           # Web interface for bot management
 ```
 
-Required environment variables:
+## 🔧 API Endpoints
 
-```env
-# Database Configuration
-DATABASE_URL="postgresql://user:password@host:port/database"
-SUPABASE_URL="https://your-project.supabase.co"
-SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
-SUPABASE_ANON_KEY="your-anon-key"
+### 1. `/api/webhook-proxy` - Main Voice Processing Pipeline
 
-# Google Gemini API
-GOOGLE_API_KEY="your-google-api-key"
+**POST** - Process messages through voice pipeline
 
-# Uplift TTS API
-UPLIFT_API_KEY="your-uplift-api-key"
-
-# WhatsApp Business API
-WHATSAPP_API_KEY="your-whatsapp-api-key"
-WHATSAPP_PHONE_ID="your-phone-id"
-WHATSAPP_BUSINESS_ID="your-business-id"
-WHATSAPP_WEBHOOK_SECRET="your-webhook-secret"
-
-# Application URL
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-```
-
-### 2. Database Setup
-
-1. Create a Supabase project and get your database URL
-2. Generate and run migrations:
-
-```bash
-npm run db:generate
-npm run db:migrate
-```
-
-3. (Optional) Open Drizzle Studio to view your database:
-
-```bash
-npm run db:studio
-```
-
-### 3. API Keys Setup
-
-#### Google Gemini API
-1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Create a new API key
-3. Add it to your `.env.local`
-
-#### Uplift TTS API (Orator)
-1. Sign up at [platform.upliftai.org](https://platform.upliftai.org)
-2. Navigate to API Keys section and generate a new key
-3. Add it to your `.env.local` as `UPLIFT_API_KEY`
-
-#### WhatsApp Business API
-1. Set up a Meta Business account
-2. Create a WhatsApp Business app
-3. Get your API key, phone ID, and business ID
-4. Configure webhook URL: `https://your-domain.com/api/message`
-5. Set webhook secret for verification
-
-### 4. Install Dependencies
-
-```bash
-npm install
-```
-
-### 5. Run Development Server
-
-```bash
-npm run dev
-```
-
-## API Endpoints
-
-### Health Check
-- **GET** `/api/health` - Check service status
-
-### Message Processing
-- **POST** `/api/message` - WhatsApp webhook endpoint
-- **GET** `/api/message` - Webhook verification
-
-### Text-to-Speech
-- **POST** `/api/tts` - Generate TTS audio (returns URL for WhatsApp)
-
-### WhatsApp
-- **POST** `/api/whatsapp/send` - Send WhatsApp message
-
-## Database Schema
-
-### Users Table
-- `id` (serial, primary key)
-- `phone` (varchar, unique)
-- `created_at` (timestamp)
-
-### Messages Table
-- `id` (serial, primary key)
-- `user_id` (integer, foreign key)
-- `text` (text)
-- `role` (varchar: 'user' or 'ai')
-- `created_at` (timestamp)
-
-### Sessions Table
-- `id` (serial, primary key)
-- `user_id` (integer, foreign key)
-- `last_active` (timestamp)
-
-## Flow Example
-
-1. User sends WhatsApp message → webhook hits `/api/message`
-2. Backend saves message in Supabase (via Drizzle)
-3. Calls Gemini API → gets AI response
-4. Calls Uplift Orator async TTS → gets audio URL immediately
-5. Sends response back via WhatsApp API (text + audio URL)
-
-## Usage Examples
-
-### Simple TTS
-```bash
-curl -X POST http://localhost:3000/api/tts \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "سلام، آپ کیسے ہیں؟"
-  }'
-```
-
-Response:
 ```json
 {
-  "success": true,
-  "audioUrl": "https://api.upliftai.org/v1/synthesis/stream-audio/..."
+  "message": "Hello, how are you?",
+  "type": "text",
+  "openaiKey": "your-openai-key",
+  "upliftKey": "your-upliftai-key"
 }
 ```
 
-## Development Scripts
-
-```bash
-# Development
-npm run dev
-
-# Build
-npm run build
-
-# Start production
-npm start
-
-# Database
-npm run db:generate    # Generate migrations
-npm run db:migrate     # Run migrations
-npm run db:studio      # Open Drizzle Studio
-
-# Linting
-npm run lint
+**For voice messages:**
+```json
+{
+  "audioUrl": "https://example.com/audio.ogg",
+  "type": "voice",
+  "openaiKey": "your-openai-key",
+  "upliftKey": "your-upliftai-key"
+}
 ```
 
-## Project Structure
-
-```
-├── app/
-│   └── api/
-│       ├── health/route.ts
-│       ├── message/route.ts
-│       ├── tts/route.ts
-│       └── whatsapp/send/route.ts
-├── src/
-│   ├── db/
-│   │   ├── schema.ts
-│   │   └── index.ts
-│   ├── lib/
-│   │   ├── database.ts
-│   │   ├── gemini.ts
-│   │   ├── uplift.ts
-│   │   └── whatsapp.ts
-│   └── types/
-│       └── index.ts
-├── drizzle.config.ts
-├── env.template
-└── README.md
+**Response:**
+```json
+{
+  "success": true,
+  "originalMessage": "Hello, how are you?",
+  "processedText": "Hello, how are you?",
+  "llmResponse": "I'm doing well, thank you for asking!",
+  "voiceUrl": "https://upliftai.com/generated-audio.mp3",
+  "message": "Message processed successfully"
+}
 ```
 
-## Deployment
+### 2. `/api/bot` - WhatsApp Bot Management
 
-1. Deploy to Vercel, Netlify, or your preferred platform
-2. Set environment variables in your deployment platform
-3. Update WhatsApp webhook URL to your production domain
-4. Run database migrations in production
+**GET** - Get bot status
+**POST** - Initialize bot (generates QR code)
 
-## Contributing
+### 3. `/api/webhook` - Meta Webhook Verification
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+**GET** - Handle Meta webhook verification
+**POST** - Process Meta webhook events
 
-## License
+## 🛠️ Setup
 
-MIT License
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Environment variables:**
+   Create a `.env` file with:
+   ```
+   OPENAI_KEY=your_openai_api_key_here
+   UPLIFT_KEY=your_upliftai_api_key_here
+   ```
+
+3. **Run development server:**
+   ```bash
+   npm run dev
+   ```
+
+4. **Build for production:**
+   ```bash
+   npm run build
+   npm start
+   ```
+
+## 📱 How to Use
+
+### Webhook Proxy System
+
+1. **Send a text message:**
+   ```bash
+   curl -X POST http://localhost:3000/api/webhook-proxy \
+     -H "Content-Type: application/json" \
+     -d '{
+       "message": "Hello, how are you?",
+       "type": "text",
+       "openaiKey": "your-openai-key",
+       "upliftKey": "your-upliftai-key"
+     }'
+   ```
+
+2. **Process a voice message:**
+   ```bash
+   curl -X POST http://localhost:3000/api/webhook-proxy \
+     -H "Content-Type: application/json" \
+     -d '{
+       "audioUrl": "https://example.com/audio.ogg",
+       "type": "voice",
+       "openaiKey": "your-openai-key",
+       "upliftKey": "your-upliftai-key"
+     }'
+   ```
+
+### WhatsApp Bot
+
+1. **Start the bot:**
+   ```bash
+   curl -X POST http://localhost:3000/api/bot
+   ```
+
+2. **Check status:**
+   ```bash
+   curl http://localhost:3000/api/bot
+   ```
+
+3. **View web interface:**
+   Open `http://localhost:3000` in your browser
+
+## 🔄 Voice Processing Pipeline
+
+1. **Input**: Text message or audio URL
+2. **Voice-to-Text**: If audio, convert to text using UpliftAI STT
+3. **LLM Processing**: Send text to OpenAI GPT-4o-mini
+4. **Text-to-Speech**: Convert LLM response to voice using UpliftAI TTS
+5. **Output**: Return processed text and voice URL
+
+## 🎯 Use Cases
+
+- **WhatsApp Voice Assistant**: Process voice messages and respond with voice
+- **Webhook Integration**: Integrate with external systems for voice processing
+- **Voice API Proxy**: Act as a middleware for voice processing services
+- **Multi-platform Support**: Process messages from various sources
+
+## 🔧 Configuration
+
+The system is designed to be flexible and can be configured for different use cases:
+
+- **LLM Provider**: Currently supports OpenAI, can be extended
+- **Voice Services**: Currently supports UpliftAI, can be extended
+- **Message Sources**: Supports direct API calls, webhooks, and WhatsApp
+
+## 📝 Notes
+
+- The WhatsApp integration is currently simplified for demonstration
+- The system focuses on the voice processing pipeline
+- All API keys should be kept secure and not committed to version control
+- The webhook proxy can be used independently of WhatsApp integration
+
+## 🚀 Deployment
+
+The application can be deployed to any platform that supports Next.js:
+
+- **Vercel**: Recommended for easy deployment
+- **Netlify**: Good alternative
+- **Docker**: Can be containerized
+- **VPS**: Traditional server deployment
+
+## 📞 Support
+
+For issues or questions, please check the API documentation or create an issue in the repository.
