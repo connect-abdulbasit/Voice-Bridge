@@ -1,41 +1,31 @@
 {
-  "name": "my-app",
-  "version": "0.1.0",
+  "name": "voice-bridge-monorepo",
+  "version": "1.0.0",
+  "description": "Voice Bridge - WhatsApp Voice Processing System",
   "private": true,
+  "workspaces": [
+    "backend(node)",
+    "nextjs"
+  ],
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "start": "next start",
-    "lint": "eslint",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
-  },
-  "dependencies": {
-    "@google/generative-ai": "^0.24.1",
-    "@supabase/supabase-js": "^2.58.0",
-    "@whiskeysockets/baileys": "^6.7.20",
-    "axios": "^1.12.2",
-    "dotenv": "^17.2.3",
-    "drizzle-orm": "^0.44.6",
-    "jimp": "^1.6.0",
-    "next": "15.5.4",
-    "postgres": "^3.4.7",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "sharp": "^0.34.4"
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd \"backend(node)\" && npx ts-node src/server.ts",
+    "dev:frontend": "cd nextjs && npm run dev",
+    "build": "npm run build:backend && npm run build:frontend",
+    "build:backend": "cd \"backend(node)\" && npm run build",
+    "build:frontend": "cd nextjs && npm run build",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:backend": "cd \"backend(node)\" && npm start",
+    "start:frontend": "cd nextjs && npm start",
+    "install:all": "npm install && cd \"backend(node)\" && npm install && cd ../nextjs && npm install",
+    "clean": "rm -rf node_modules \"backend(node)/node_modules\" nextjs/node_modules"
   },
   "devDependencies": {
-    "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
-    "@types/fs-extra": "^11.0.4",
-    "@types/node": "^20.19.19",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "drizzle-kit": "^0.31.5",
-    "eslint": "^9",
-    "eslint-config-next": "15.5.4",
-    "tailwindcss": "^4",
-    "typescript": "^5.9.3"
+    "concurrently": "^8.2.2",
+    "ts-node": "^10.9.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
   }
 }
