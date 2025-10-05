@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { sendWhatsAppMessage } from '@/lib/whatsapp';
-import { WhatsAppSendRequest } from '@/types';
+import { sendWhatsAppMessage } from '@/src/lib/whatsapp';
+import { WhatsAppSendRequest } from '@/src/types';
+
 
 export async function POST(request: NextRequest) {
   try {

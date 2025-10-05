@@ -1,30 +1,33 @@
-import { TTSRequest, TTSResponse } from '@/types';
+import { TTSResponse } from "../types";
 
-export async function generateTTS(request: TTSRequest): Promise<TTSResponse> {
+export async function generateUrduTTS(text: string): Promise<TTSResponse> {
   try {
-    const response = await fetch('https://api.uplift.ai/v1/tts', {
+    // Use async TTS for WhatsApp bots - returns URL immediately
+    const response = await fetch('https://api.upliftai.org/v1/synthesis/text-to-speech-async', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${process.env.UPLIFT_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        text: request.text,
-        language: request.lang,
-        voice: request.voice || 'urdu-female-1',
-        format: 'mp3',
-        quality: 'high',
+        voiceId: 'v_8eelc901', // Simple Urdu voice
+        text: text,
+        outputFormat: 'MP3_22050_64', // Smaller for WhatsApp
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`Uplift API error: ${response.status} ${response.statusText}`);
+      const error = await response.json();
+      throw new Error(`Uplift API error: ${response.status} ${error.message || response.statusText}`);
     }
 
     const result = await response.json();
     
+    // Create the audio URL that WhatsApp can use directly
+    const audioUrl = `https://api.upliftai.org/v1/synthesis/stream-audio/${result.mediaId}?token=${result.token}`;
+    
     return {
-      audioUrl: result.audio_url,
+      audioUrl: audioUrl,
       success: true,
     };
   } catch (error) {
@@ -34,12 +37,4 @@ export async function generateTTS(request: TTSRequest): Promise<TTSResponse> {
       error: error instanceof Error ? error.message : 'Unknown error',
     };
   }
-}
-
-export async function generateUrduTTS(text: string): Promise<TTSResponse> {
-  return generateTTS({
-    text,
-    lang: 'ur',
-    voice: 'urdu-female-1',
-  });
 }

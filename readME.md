@@ -6,7 +6,7 @@ A Next.js backend project that integrates WhatsApp Business API with Google Gemi
 
 - **WhatsApp Integration**: Send and receive messages via WhatsApp Business API
 - **AI Responses**: Powered by Google Gemini API with Urdu/English support
-- **Text-to-Speech**: Realistic Urdu TTS using Uplift API
+- **High-Quality Urdu TTS**: Natural Pakistani text-to-speech using Uplift Orator API
 - **Database**: Supabase PostgreSQL with Drizzle ORM
 - **Conversation History**: Persistent chat history and user sessions
 
@@ -77,10 +77,10 @@ npm run db:studio
 2. Create a new API key
 3. Add it to your `.env.local`
 
-#### Uplift TTS API
-1. Sign up at [Uplift.ai](https://uplift.ai)
-2. Get your API key from the dashboard
-3. Add it to your `.env.local`
+#### Uplift TTS API (Orator)
+1. Sign up at [platform.upliftai.org](https://platform.upliftai.org)
+2. Navigate to API Keys section and generate a new key
+3. Add it to your `.env.local` as `UPLIFT_API_KEY`
 
 #### WhatsApp Business API
 1. Set up a Meta Business account
@@ -111,7 +111,7 @@ npm run dev
 - **GET** `/api/message` - Webhook verification
 
 ### Text-to-Speech
-- **POST** `/api/tts` - Generate TTS audio
+- **POST** `/api/tts` - Generate TTS audio (returns URL for WhatsApp)
 
 ### WhatsApp
 - **POST** `/api/whatsapp/send` - Send WhatsApp message
@@ -140,8 +140,27 @@ npm run dev
 1. User sends WhatsApp message → webhook hits `/api/message`
 2. Backend saves message in Supabase (via Drizzle)
 3. Calls Gemini API → gets AI response
-4. Optionally calls Uplift → generates Urdu TTS audio
-5. Sends response back via WhatsApp API
+4. Calls Uplift Orator async TTS → gets audio URL immediately
+5. Sends response back via WhatsApp API (text + audio URL)
+
+## Usage Examples
+
+### Simple TTS
+```bash
+curl -X POST http://localhost:3000/api/tts \
+  -H "Content-Type: application/json" \
+  -d '{
+    "text": "سلام، آپ کیسے ہیں؟"
+  }'
+```
+
+Response:
+```json
+{
+  "success": true,
+  "audioUrl": "https://api.upliftai.org/v1/synthesis/stream-audio/..."
+}
+```
 
 ## Development Scripts
 

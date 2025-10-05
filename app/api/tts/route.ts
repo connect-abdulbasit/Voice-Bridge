@@ -1,21 +1,20 @@
+import { generateUrduTTS } from '@/src/lib/uplift';
 import { NextRequest, NextResponse } from 'next/server';
-import { generateTTS } from '@/lib/uplift';
-import { TTSRequest } from '@/types';
 
 export async function POST(request: NextRequest) {
   try {
-    const body: TTSRequest = await request.json();
+    const body = await request.json();
     
     // Validate required fields
-    if (!body.text || !body.lang) {
+    if (!body.text) {
       return NextResponse.json(
-        { error: 'Missing required fields: text and lang' },
+        { error: 'Missing required field: text' },
         { status: 400 }
       );
     }
 
     // Generate TTS
-    const result = await generateTTS(body);
+    const result = await generateUrduTTS(body.text);
 
     if (!result.success) {
       return NextResponse.json(

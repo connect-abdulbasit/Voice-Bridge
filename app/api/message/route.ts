@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { parseWhatsAppWebhook, sendWhatsAppMessage, verifyWebhookSignature } from '@/lib/whatsapp';
-import { generateUrduResponse } from '@/lib/gemini';
-import { generateUrduTTS } from '@/lib/uplift';
-import { findOrCreateUser, saveMessage, getConversationHistory, updateUserSession } from '@/lib/database';
-import { WhatsAppWebhookPayload } from '@/types';
+import { parseWhatsAppWebhook, sendWhatsAppMessage, verifyWebhookSignature } from '@/src/lib/whatsapp';
+import { generateUrduResponse } from '@/src/lib/gemini';
+import { generateUrduTTS } from '@/src/lib/uplift';
+import { findOrCreateUser, saveMessage, getConversationHistory, updateUserSession } from '@/src/lib/database';
+import { WhatsAppWebhookPayload } from '@/src/types';
+
 
 export async function POST(request: NextRequest) {
   try {
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
         
         // Get conversation history for context
         const history = await getConversationHistory(user.id, 5);
-        const historyTexts = history.map(msg => `${msg.role}: ${msg.text}`);
+        const historyTexts = history.map((msg: { role: string; text: string }) => `${msg.role}: ${msg.text}`);
         
         // Generate AI response using Gemini
         const aiResponse = await generateUrduResponse(message.text, historyTexts);

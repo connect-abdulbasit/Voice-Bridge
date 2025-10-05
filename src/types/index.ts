@@ -38,15 +38,8 @@ export interface WhatsAppWebhookPayload {
   }>;
 }
 
-export interface TTSRequest {
-  text: string;
-  lang: string;
-  voice?: string;
-}
-
 export interface TTSResponse {
   audioUrl?: string;
-  audioData?: string;
   success: boolean;
   error?: string;
 }
