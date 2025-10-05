@@ -49,22 +49,31 @@ export async function POST(request: NextRequest) {
         // Save AI response
         await saveMessage(user.id, aiResponse.text, 'ai');
         
-        // Generate TTS for the response (optional)
+        // Generate TTS for the response (required for voice-only responses)
         let audioUrl: string | undefined;
         try {
           const ttsResult = await generateUrduTTS(aiResponse.text);
           if (ttsResult.success && ttsResult.audioUrl) {
             audioUrl = ttsResult.audioUrl;
+          } else {
+            throw new Error('TTS generation failed');
           }
         } catch (ttsError) {
-          console.warn('TTS generation failed, sending text only:', ttsError);
+          console.error('TTS generation failed:', ttsError);
+          // Send fallback text message if TTS fails
+          await sendWhatsAppMessage({
+            to: message.from,
+            message: 'معذرت، میں آپ کا جواب تیار کرنے میں مسئلہ آ رہا ہے۔ برائے کرم دوبارہ کوشش کریں۔',
+            type: 'text',
+          });
+          continue; // Skip to next message
         }
         
-        // Send response back via WhatsApp
+        // Send voice-only response back via WhatsApp
         const sendResult = await sendWhatsAppMessage({
           to: message.from,
-          message: aiResponse.text,
-          type: audioUrl ? 'audio' : 'text',
+          message: '', // Empty message since we're sending voice only
+          type: 'audio',
           audioUrl,
         });
         

@@ -1,5 +1,5 @@
-import { db } from '@/db';
-import { users, messages, sessions, type NewUser, type NewMessage, type NewSession } from '@/db/schema';
+import { db } from '@/src/db';
+import { users, messages, sessions, type NewUser, type NewMessage, type NewSession } from '@/src/db/schema';
 import { eq, desc } from 'drizzle-orm';
 
 export async function findOrCreateUser(phone: string) {

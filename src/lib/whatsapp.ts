@@ -1,4 +1,5 @@
-import { WhatsAppSendRequest, WhatsAppWebhookPayload } from '@/types';
+import { WhatsAppSendRequest, WhatsAppWebhookPayload } from "../types";
+
 
 export async function sendWhatsAppMessage(request: WhatsAppSendRequest): Promise<{ success: boolean; error?: string }> {
   try {
@@ -8,14 +9,14 @@ export async function sendWhatsAppMessage(request: WhatsAppSendRequest): Promise
       messaging_product: 'whatsapp',
       to: request.to,
       type: request.type || 'text',
-      ...(request.type === 'text' 
-        ? { text: { body: request.message } }
-        : { 
+      ...(request.type === 'audio' 
+        ? { 
             audio: { 
               link: request.audioUrl,
               filename: 'response.mp3'
             } 
           }
+        : { text: { body: request.message } }
       ),
     };
 
